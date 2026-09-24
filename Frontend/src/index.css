@@ -1234,3 +1234,188 @@ button {
 .menu-item:visited {
   color: inherit;
 }
+
+.file-selected {
+  margin-top: 15px;
+  color: #173574 !important;
+}
+
+.file-selected strong {
+  color: #299442;
+}
+
+.empty-spreadsheet {
+  min-height: 180px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  color: #8991a0;
+
+  text-align: center;
+}
+
+.empty-spreadsheet svg {
+  color: #2775d8;
+  margin-bottom: 10px;
+}
+
+.empty-spreadsheet p {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.empty-spreadsheet small {
+  font-size: 12px;
+}
+
+.empty-attributes {
+  min-height: 100px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  color: #8991a0;
+
+  text-align: center;
+
+  border: 1px dashed #d5d9df;
+
+  border-radius: 10px;
+
+  margin-top: 20px;
+
+  padding: 20px;
+}
+
+.empty-attributes svg {
+  color: #2775d8;
+
+  margin-bottom: 8px;
+}
+
+.empty-attributes p {
+  font-size: 13px;
+}
+
+/* =====================================================
+   GRÁFICOS REAIS
+===================================================== */
+
+.real-chart {
+  width: 100%;
+  min-height: 280px;
+
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+
+  padding: 30px 20px 10px;
+
+  border: 1px solid #e3e6eb;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  overflow-x: auto;
+}
+
+.real-chart-column {
+  min-width: 55px;
+  height: 230px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.real-chart-value {
+  font-size: 11px;
+  font-weight: 600;
+
+  color: #173574;
+
+  margin-bottom: 6px;
+
+  white-space: nowrap;
+}
+
+.real-chart-bar-area {
+  width: 35px;
+  height: 180px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.real-chart-bar {
+  width: 100%;
+
+  background: #2775d8;
+
+  border-radius: 6px 6px 0 0;
+
+  min-height: 5px;
+
+  transition: height 0.3s ease;
+}
+
+.real-chart-bar.loss-bar {
+  background: #e58b3d;
+}
+
+.real-chart-column span {
+  margin-top: 8px;
+
+  font-size: 11px;
+
+  color: #8991a0;
+}
+
+.empty-chart {
+  min-height: 150px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 1px dashed #d5d9df;
+
+  border-radius: 10px;
+
+  color: #8991a0;
+
+  text-align: center;
+}
+
+.quantity-total {
+  min-height: 160px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+}
+
+.quantity-total strong {
+  font-size: 34px;
+
+  color: #173574;
+}
+
+.quantity-total small {
+  margin-top: 5px;
+
+  color: #8991a0;
+}

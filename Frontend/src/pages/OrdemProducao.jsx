@@ -1,3 +1,7 @@
+import { useRef, useState } from "react";
+import * as XLSX from "xlsx";
+import { useNavigate, Link } from "react-router-dom";
+
 import {
   Home,
   Factory,
@@ -10,46 +14,290 @@ import {
   Download
 } from "lucide-react";
 
-import { Link } from "react-router-dom";
-
 function OrdemProducao() {
+
+  const fileInputRef = useRef(null);
+  const navigate = useNavigate();
+
+  const [dados, setDados] = useState([]);
+  const [colunas, setColunas] = useState([]);
+  const [nomeArquivo, setNomeArquivo] = useState("");
+
+  const [atributosSelecionados, setAtributosSelecionados] =
+    useState([]);
+
+
+  // =====================================================
+  // IMPORTAR PLANILHA
+  // =====================================================
+
+  const handleFile = (event) => {
+
+    const arquivo = event.target.files[0];
+
+    if (!arquivo) {
+      return;
+    }
+
+    setNomeArquivo(arquivo.name);
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+
+      try {
+
+        const dadosBrutos = new Uint8Array(
+          e.target.result
+        );
+
+        const workbook = XLSX.read(
+          dadosBrutos,
+          {
+            type: "array"
+          }
+        );
+
+        const primeiraAba =
+          workbook.SheetNames[0];
+
+        const planilha =
+          workbook.Sheets[primeiraAba];
+
+        const dadosConvertidos =
+          XLSX.utils.sheet_to_json(
+            planilha,
+            {
+              defval: ""
+            }
+          );
+
+        if (dadosConvertidos.length > 0) {
+
+          setDados(dadosConvertidos);
+
+          const colunasEncontradas =
+            Object.keys(
+              dadosConvertidos[0]
+            );
+
+          setColunas(colunasEncontradas);
+
+          setAtributosSelecionados([]);
+
+        } else {
+
+          setDados([]);
+          setColunas([]);
+          setAtributosSelecionados([]);
+
+          alert(
+            "A planilha está vazia."
+          );
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Erro ao ler a planilha:",
+          error
+        );
+
+        alert(
+          "Não foi possível ler a planilha."
+        );
+
+      }
+
+    };
+
+    reader.readAsArrayBuffer(arquivo);
+
+  };
+
+
+  // =====================================================
+  // SELECIONAR ATRIBUTO
+  // =====================================================
+
+  const selecionarAtributo = (coluna) => {
+
+    setAtributosSelecionados((atual) => {
+
+      if (atual.includes(coluna)) {
+
+        return atual.filter(
+          (item) => item !== coluna
+        );
+
+      }
+
+      return [
+        ...atual,
+        coluna
+      ];
+
+    });
+
+  };
+
+
+  // =====================================================
+  // EXPORTAR PLANILHA
+  // =====================================================
+
+  const exportarPlanilha = () => {
+
+    if (dados.length === 0) {
+
+      alert(
+        "Importe uma planilha antes de exportar."
+      );
+
+      return;
+    }
+
+    const worksheet =
+      XLSX.utils.json_to_sheet(dados);
+
+    const workbook =
+      XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Produção"
+    );
+
+    XLSX.writeFile(
+      workbook,
+      "dados_producao.xlsx"
+    );
+
+  };
+
+
+  // =====================================================
+  // GERAR ANÁLISE
+  // =====================================================
+
+  const gerarAnalise = () => {
+
+    if (dados.length === 0) {
+
+      alert(
+        "Importe uma planilha antes de gerar a análise."
+      );
+
+      return;
+    }
+
+    if (atributosSelecionados.length === 0) {
+
+      alert(
+        "Selecione pelo menos um atributo para análise."
+      );
+
+      return;
+    }
+
+    // Envia os dados para a página Análises
+    navigate("/analises", {
+
+      state: {
+
+        dados: dados,
+
+        colunas: colunas,
+
+        atributosSelecionados:
+          atributosSelecionados
+
+      }
+
+    });
+
+  };
+
+
   return (
+
     <div className="dashboard">
 
-      {/* MENU LATERAL */}
+
+      {/* =====================================================
+          SIDEBAR
+      ===================================================== */}
+
       <aside className="sidebar">
 
         <div className="sidebar-logo">
-            <img
-                src="https://cdn-icons-png.flaticon.com/128/2741/2741372.png"
-                alt="Logo SIGEP-EPI"
-            />
+
+          <img
+            src="https://cdn-icons-png.flaticon.com/128/2741/2741372.png"
+            alt="Logo SIGEP-EPI"
+          />
+
         </div>
+
 
         <div className="menu">
 
-          <Link to="/" className="menu-item">
+          <Link
+            to="/"
+            className="menu-item"
+          >
+
             <Home size={19} />
-            <span>Início</span>
+
+            <span>
+              Início
+            </span>
+
           </Link>
 
-          <Link to="/producao" className="menu-item active">
+
+          <Link
+            to="/producao"
+            className="menu-item active"
+          >
+
             <Factory size={19} />
-            <span>Produção</span>
+
+            <span>
+              Produção
+            </span>
+
           </Link>
 
-          <Link to="/analises" className="menu-item">
+
+          <Link
+            to="/analises"
+            className="menu-item"
+          >
+
             <BarChart3 size={19} />
-            <span>Análises</span>
+
+            <span>
+              Análises
+            </span>
+
           </Link>
 
         </div>
+
 
         <div className="sidebar-bottom">
 
           <button className="menu-item">
+
             <User size={19} />
-            <span>Perfil</span>
+
+            <span>
+              Perfil
+            </span>
+
           </button>
 
         </div>
@@ -57,53 +305,92 @@ function OrdemProducao() {
       </aside>
 
 
-      {/* CONTEÚDO */}
+      {/* =====================================================
+          CONTEÚDO PRINCIPAL
+      ===================================================== */}
+
       <main className="dashboard-content">
 
-        {/* CABEÇALHO */}
+
+        {/* =====================================================
+            CABEÇALHO
+        ===================================================== */}
+
         <header className="dashboard-header">
 
           <div>
-            <h1>Ordens de Produção</h1>
+
+            <h1>
+              Ordens de Produção
+            </h1>
 
             <p>
               Importe e gerencie os dados da produção.
             </p>
+
           </div>
+
 
           <div className="user-info">
 
             <div className="user-avatar">
+
               <User size={20} />
+
             </div>
+
 
             <div>
-              <strong>Funcionário</strong>
-              <small>Operador</small>
+
+              <strong>
+                Funcionário
+              </strong>
+
+              <small>
+                Operador
+              </small>
+
             </div>
 
-            <X size={20} className="close-icon" />
+
+            <X
+              size={20}
+              className="close-icon"
+            />
 
           </div>
 
         </header>
 
 
-        {/* IMPORTAÇÃO */}
+        {/* =====================================================
+            IMPORTAR PLANILHA
+        ===================================================== */}
+
         <section className="upload-section">
+
 
           <div className="section-heading">
 
             <div className="section-icon">
-              <FileSpreadsheet size={24} />
+
+              <FileSpreadsheet
+                size={24}
+              />
+
             </div>
 
+
             <div>
-              <h2>Importar planilha</h2>
+
+              <h2>
+                Importar planilha
+              </h2>
 
               <p>
                 Selecione uma planilha Excel com os dados da produção.
               </p>
+
             </div>
 
           </div>
@@ -111,46 +398,110 @@ function OrdemProducao() {
 
           <div className="upload-area">
 
+
             <div className="upload-icon">
+
               <Upload size={32} />
+
             </div>
 
-            <h3>Importe sua planilha</h3>
+
+            <h3>
+              Importe sua planilha
+            </h3>
+
 
             <p>
-              Arraste seu arquivo aqui ou selecione no computador.
+              Selecione um arquivo Excel no computador.
             </p>
 
+
             <span className="file-types">
+
               Formatos aceitos: .xlsx e .xls
+
             </span>
 
-            <button className="primary-button upload-button">
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleFile}
+              style={{
+                display: "none"
+              }}
+            />
+
+
+            <button
+              className="primary-button upload-button"
+              onClick={() => {
+
+                fileInputRef.current?.click();
+
+              }}
+            >
+
               <Upload size={17} />
+
               Escolher arquivo
+
             </button>
+
+
+            {nomeArquivo && (
+
+              <p className="file-selected">
+
+                Arquivo selecionado:
+
+                <strong>
+                  {" "}
+                  {nomeArquivo}
+                </strong>
+
+              </p>
+
+            )}
 
           </div>
 
         </section>
 
 
-        {/* PLANILHA */}
+        {/* =====================================================
+            DADOS DA PLANILHA
+        ===================================================== */}
+
         <section className="production-data">
+
 
           <div className="section-title">
 
+
             <div>
-              <h2>Dados da planilha</h2>
+
+              <h2>
+                Dados da planilha
+              </h2>
 
               <p>
                 Visualize os dados importados antes de realizar a análise.
               </p>
+
             </div>
 
-            <button className="secondary-button">
+
+            <button
+              className="secondary-button"
+              onClick={exportarPlanilha}
+            >
+
               <Download size={17} />
+
               Exportar
+
             </button>
 
           </div>
@@ -158,139 +509,229 @@ function OrdemProducao() {
 
           <div className="spreadsheet">
 
-            <div className="spreadsheet-header">
 
-              <span>Ordem</span>
-              <span>Produto</span>
-              <span>Quantidade</span>
-              <span>Perdas</span>
-              <span>Data</span>
-              <span>Status</span>
+            {dados.length > 0 ? (
 
-            </div>
+              <>
 
 
-            <div className="spreadsheet-row">
+                {/* CABEÇALHO DA TABELA */}
 
-              <span>OP-0045</span>
-              <span>Capacete</span>
-              <span>250</span>
-              <span>5</span>
-              <span>20/09/2026</span>
+                <div
+                  className="spreadsheet-header"
+                  style={{
+                    gridTemplateColumns:
+                      `repeat(${colunas.length}, minmax(150px, 1fr))`
+                  }}
+                >
 
-              <span className="status production">
-                Em produção
-              </span>
+                  {colunas.map(
+                    (coluna) => (
 
-            </div>
+                      <span
+                        key={coluna}
+                      >
 
+                        {coluna}
 
-            <div className="spreadsheet-row">
+                      </span>
 
-              <span>OP-0044</span>
-              <span>Luvas</span>
-              <span>180</span>
-              <span>3</span>
-              <span>20/09/2026</span>
+                    )
+                  )}
 
-              <span className="status production">
-                Em produção
-              </span>
-
-            </div>
+                </div>
 
 
-            <div className="spreadsheet-row">
+                {/* LINHAS DA TABELA */}
 
-              <span>OP-0043</span>
-              <span>Luvas</span>
-              <span>200</span>
-              <span>8</span>
-              <span>19/09/2026</span>
+                {dados.map(
+                  (linha, index) => (
 
-              <span className="status finished">
-                Finalizada
-              </span>
+                    <div
+                      className="spreadsheet-row"
+                      key={index}
+                      style={{
+                        gridTemplateColumns:
+                          `repeat(${colunas.length}, minmax(150px, 1fr))`
+                      }}
+                    >
 
-            </div>
+                      {colunas.map(
+                        (coluna) => (
+
+                          <span
+                            key={coluna}
+                          >
+
+                            {linha[coluna]}
+
+                          </span>
+
+                        )
+                      )}
+
+                    </div>
+
+                  )
+                )}
+
+              </>
+
+            ) : (
+
+              <div className="empty-spreadsheet">
+
+                <FileSpreadsheet
+                  size={35}
+                />
+
+                <p>
+                  Nenhuma planilha foi importada.
+                </p>
+
+                <small>
+                  Selecione um arquivo Excel para visualizar os dados.
+                </small>
+
+              </div>
+
+            )}
 
           </div>
 
         </section>
 
 
-        {/* ATRIBUTOS */}
+        {/* =====================================================
+            ATRIBUTOS PARA ANÁLISE
+        ===================================================== */}
+
         <section className="analysis-selection">
+
 
           <div className="section-title">
 
             <div>
-              <h2>Atributos para análise</h2>
+
+              <h2>
+                Atributos para análise
+              </h2>
 
               <p>
-                Selecione as informações que deseja analisar.
+                Selecione as colunas que deseja utilizar na análise.
               </p>
+
             </div>
 
           </div>
 
 
-          <div className="attribute-list">
+          {colunas.length > 0 ? (
 
-            <label className="attribute">
-              <input type="checkbox" defaultChecked />
-              <span>Quantidade produzida</span>
-            </label>
+            <div className="attribute-list">
 
-            <label className="attribute">
-              <input type="checkbox" defaultChecked />
-              <span>Produtividade</span>
-            </label>
+              {colunas.map(
+                (coluna) => (
 
-            <label className="attribute">
-              <input type="checkbox" />
-              <span>Perdas</span>
-            </label>
+                  <label
+                    className="attribute"
+                    key={coluna}
+                  >
 
-            <label className="attribute">
-              <input type="checkbox" />
-              <span>Produtos</span>
-            </label>
+                    <input
+                      type="checkbox"
+                      checked={
+                        atributosSelecionados.includes(
+                          coluna
+                        )
+                      }
+                      onChange={() =>
+                        selecionarAtributo(
+                          coluna
+                        )
+                      }
+                    />
 
-            <label className="attribute">
-              <input type="checkbox" />
-              <span>Período</span>
-            </label>
+                    <span>
+                      {coluna}
+                    </span>
 
-            <label className="attribute">
-              <input type="checkbox" />
-              <span>Status</span>
-            </label>
+                  </label>
 
-          </div>
+                )
+              )}
 
+            </div>
+
+          ) : (
+
+            <div className="empty-attributes">
+
+              <FileSpreadsheet
+                size={25}
+              />
+
+              <p>
+                Importe uma planilha para selecionar os atributos.
+              </p>
+
+            </div>
+
+          )}
+
+
+          {/* =====================================================
+              RODAPÉ
+          ===================================================== */}
 
           <div className="analysis-footer">
 
+
             <div className="selected-info">
-              <CheckCircle size={18} />
+
+              <CheckCircle
+                size={18}
+              />
+
               <span>
-                Selecione os dados que deseja utilizar na análise.
+
+                {atributosSelecionados.length > 0
+
+                  ? `${atributosSelecionados.length} atributo(s) selecionado(s).`
+
+                  : "Nenhum atributo selecionado."
+
+                }
+
               </span>
+
             </div>
 
-            <button className="primary-button">
+
+            <button
+              className="primary-button"
+              disabled={
+                atributosSelecionados.length === 0
+              }
+              onClick={gerarAnalise}
+            >
+
               Gerar análise
+
             </button>
+
 
           </div>
 
         </section>
 
+
       </main>
 
     </div>
+
   );
+
 }
 
 export default OrdemProducao;
