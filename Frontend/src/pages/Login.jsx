@@ -7,8 +7,11 @@ function Login() {
       {/* LADO ESQUERDO */}
       <div className="login-left">
 
-        <div className="logo">
-          ⚙
+        <div className="sidebar-logo">
+            <img
+                src="https://cdn-icons-png.flaticon.com/128/2741/2741372.png"
+                alt="Logo SIGEP-EPI"
+            />
         </div>
 
         <h1>SIGEP-EPI</h1>
